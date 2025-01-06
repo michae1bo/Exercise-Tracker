@@ -34,8 +34,8 @@ app.post('/api/users', async function(req, res) {
 });
 
 app.get('/api/users', async function(req, res) {
-  const users = await ExerciseTracker.find({}, {username: 1, _id: 1, log: 0});
-  res.json({userList: "hi"});
+  const users = await ExerciseTracker.find({}, {log: 0, count: 0, __v: 0});
+  res.json({userList: users});
 });
 
 
