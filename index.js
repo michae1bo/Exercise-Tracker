@@ -20,7 +20,7 @@ app.get('/', (req, res) => {
 
 app.post('/api/users', async function(req, res) {
   console.log(req.body.username);
-  let jsonResponse = await ExerciseTracker.findOne({username: req.body.username});
+  let jsonResponse = await ExerciseTracker.findOne({username: req.body.username}, {log: 0, count: 0, __v: 0});
   if (jsonResponse === null) {
     const user = new ExerciseTracker({
       username: req.body.username,
@@ -35,7 +35,7 @@ app.post('/api/users', async function(req, res) {
 
 app.get('/api/users', async function(req, res) {
   const users = await ExerciseTracker.find({}, {log: 0, count: 0, __v: 0});
-  res.json({userList: users});
+  res.send(users);
 });
 
 
