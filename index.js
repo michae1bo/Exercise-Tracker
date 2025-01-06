@@ -49,7 +49,7 @@ app.post('/api/users/:_id/exercises', async function (req, res) {
     if (user === null) {
       res.json({error: "No user with that id"});
     } else {
-      user.log.push({description: description, duration: duration, date: dateString});
+      user.log.push({description: description, duration: duration, date: date});
       user.count = user.log.length;
       await user.save();
       res.json({
@@ -68,7 +68,13 @@ app.get('/api/users/:_id/logs', async function (req, res) {
   if (user === null) {
     res.json({error: "No user with that id"});
   } else {
-    res.json(user);
+    const jsonResponse = {_id: user._id, count: user.count, log: []};
+    for(let i = 0; i < user.log.length; i++) {
+      const currentLog = {description: user.log[i].description, duratron: user.log[i].duration, date: user.log[i].date.toDateString()};
+      jsonResponse.log.push(currentLog);
+    }
+    
+    res.json(jsonResponse);
   }
 })
 
@@ -88,7 +94,7 @@ const exerciseTrackerSchema = new mongoose.Schema({
   log: [{
     description: String,
     duration: Number,
-    date: String,
+    date: Date,
     _id: false
   }]
 });
