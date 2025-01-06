@@ -19,7 +19,6 @@ app.get('/', (req, res) => {
 });
 
 app.post('/api/users', async function(req, res) {
-  console.log(req.body.username);
   let jsonResponse = await ExerciseTracker.findOne({username: req.body.username}, {log: 0, count: 0, __v: 0});
   if (jsonResponse === null) {
     const user = new ExerciseTracker({
@@ -38,7 +37,40 @@ app.get('/api/users', async function(req, res) {
   res.send(users);
 });
 
+app.post('/api/users/:_id/exercises', async function (req, res) {
+  const description = req.body.description;
+  const duration = parseInt(req.body.duration);
+  const date = (req.body.date !== "") ? new Date(req.body.date) : new Date();
+  const dateString = date.toDateString();
+  if (dateString === "Invalid Date") {
+    res.json({error: "Invalid Date"});
+  } else {
+    const user = await ExerciseTracker.findById(req.params._id);
+    if (user === null) {
+      res.json({error: "No user with that id"});
+    } else {
+      user.log.push({description: description, duration: duration, date: dateString});
+      user.count = user.log.length;
+      await user.save();
+      res.json({
+        _id: user._id,
+        username: user.username,
+        date: dateString,
+        duration: duration,
+        description: description
+      });
+    }
+  }
+});
 
+app.get('/api/users/:_id/logs', async function (req, res) {
+  const user = await ExerciseTracker.findById(req.params._id, {__v: 0});
+  if (user === null) {
+    res.json({error: "No user with that id"});
+  } else {
+    res.json(user);
+  }
+})
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
@@ -56,7 +88,8 @@ const exerciseTrackerSchema = new mongoose.Schema({
   log: [{
     description: String,
     duration: Number,
-    date: String
+    date: String,
+    _id: false
   }]
 });
 const ExerciseTracker = mongoose.model('ExerciseTracker', exerciseTrackerSchema);
