@@ -69,11 +69,45 @@ app.get('/api/users/:_id/logs', async function (req, res) {
     res.json({error: "No user with that id"});
   } else {
     const jsonResponse = {_id: user._id, count: user.count, log: []};
+    let logs = []
     for(let i = 0; i < user.log.length; i++) {
-      const currentLog = {description: user.log[i].description, duratron: user.log[i].duration, date: user.log[i].date.toDateString()};
-      jsonResponse.log.push(currentLog);
+      const currentLog = {description: user.log[i].description, duratron: user.log[i].duration, date: user.log[i].date};
+      logs.push(currentLog);
     }
-    
+    logs.sort((a, b) => a.date.getTime() - b.date.getTime());
+    if (req.query.from !== undefined) {
+      const fromDate = new Date(req.query.from);
+      if (fromDate.toDateString() !== "Invalid Date") {
+        while (fromDate.getTime() > logs[0].date.getTime()) {
+          logs.shift();
+          if (logs.length === 0) {
+            break;
+          }
+        }
+      }
+    }
+    if (req.query.to !== undefined) {
+      const toDate = new Date(req.query.to);
+      if (toDate.toDateString() !== "Invalid Date") {
+        let i = logs.length - 1;
+        while (toDate.getTime() < logs[i].date.getTime()) {
+          logs.pop();
+          i = logs.length - 1;
+          if (logs.length === 0) {
+            break;
+          }
+        }
+      }
+    }
+    if (req.query.limit !== undefined) {
+      if (!isNaN(req.query.limit)) {        
+        logs = logs.slice(0, parseInt(req.query.limit));
+      }
+    }
+    for (let i = 0; i < logs.length; i++) {
+      logs[i].date = logs[i].date.toDateString();
+    }
+    jsonResponse.log = logs;
     res.json(jsonResponse);
   }
 })
